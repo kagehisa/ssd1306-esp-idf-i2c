@@ -10,6 +10,7 @@
 
 #include "ssd1366.h"
 #include "font8x8_basic.h"
+#include "font16x8_terminus.h"
 
 #define SDA_PIN GPIO_NUM_15
 #define SCL_PIN GPIO_NUM_2
@@ -81,7 +82,7 @@ void task_ssd1306_display_pattern(void *ignore) {
 void task_ssd1306_display_clear(void *ignore) {
 	i2c_cmd_handle_t cmd;
 
-	uint8_t zero[128];
+	uint8_t zero[128] = { 0 };
 	for (uint8_t i = 0; i < 8; i++) {
 		cmd = i2c_cmd_link_create();
 		i2c_master_start(cmd);
@@ -159,7 +160,7 @@ void task_ssd1306_scroll(void *ignore) {
 	vTaskDelete(NULL);
 }
 
-void task_ssd1306_display_text(const void *arg_text) {
+void task_ssd1306_display_text(void *arg_text) {
 	char *text = (char*)arg_text;
 	uint8_t text_len = strlen(text);
 
@@ -180,6 +181,8 @@ void task_ssd1306_display_text(const void *arg_text) {
 	i2c_master_cmd_begin(I2C_NUM_0, cmd, 10/portTICK_PERIOD_MS);
 	i2c_cmd_link_delete(cmd);
 
+	ESP_LOGI(tag, "Inside of display text");
+	
 	for (uint8_t i = 0; i < text_len; i++) {
 		if (text[i] == '\n') {
 			cmd = i2c_cmd_link_create();
@@ -200,7 +203,13 @@ void task_ssd1306_display_text(const void *arg_text) {
 			i2c_master_write_byte(cmd, (OLED_I2C_ADDRESS << 1) | I2C_MASTER_WRITE, true);
 
 			i2c_master_write_byte(cmd, OLED_CONTROL_BYTE_DATA_STREAM, true);
-			i2c_master_write(cmd, font8x8_basic_tr[(uint8_t)text[i]], 8, true);
+			ESP_LOGI(tag, "before sending text");
+			ESP_LOGI(tag, "Index text: %d : %X : %c", text[i], text[i], text[i]);
+
+			ESP_LOG_BUFFER_HEX(tag, font16x8_test[(uint8_t)text[i]], 16);
+			ESP_LOG_BUFFER_CHAR(tag, font16x8_test[(uint8_t)text[i]], 16);
+			i2c_master_write(cmd, font16x8_test[(uint8_t)text[i]], 16, true);
+		        //i2c_master_write(cmd, font8x8_basic_tr[(uint8_t)text[i]], 8, true);
 
 			i2c_master_stop(cmd);
 			i2c_master_cmd_begin(I2C_NUM_0, cmd, 10/portTICK_PERIOD_MS);
@@ -219,8 +228,7 @@ void app_main(void)
 	//xTaskCreate(&task_ssd1306_display_pattern, "ssd1306_display_pattern",  2048, NULL, 6, NULL);
 	xTaskCreate(&task_ssd1306_display_clear, "ssd1306_display_clear",  2048, NULL, 6, NULL);
 	vTaskDelay(100/portTICK_PERIOD_MS);
-	xTaskCreate(&task_ssd1306_display_text, "ssd1306_display_text",  2048,
-		(void *)"Hello world!\nMulitine is OK!\nAnother line", 6, NULL);
-	xTaskCreate(&task_ssd1306_contrast, "ssid1306_contrast", 2048, NULL, 6, NULL);
-	xTaskCreate(&task_ssd1306_scroll, "ssid1306_scroll", 2048, NULL, 6, NULL);
+	xTaskCreate(&task_ssd1306_display_text, "ssd1306_display_text",  2048,(void *)"A", 6, NULL);
+	//xTaskCreate(&task_ssd1306_contrast, "ssid1306_contrast", 2048, NULL, 6, NULL);
+	//xTaskCreate(&task_ssd1306_scroll, "ssid1306_scroll", 2048, NULL, 6, NULL);
 }
