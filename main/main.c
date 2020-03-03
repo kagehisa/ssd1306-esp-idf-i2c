@@ -10,8 +10,8 @@
 
 #include "ssd1366.h"
 //#include "font8x8_basic.h"
-#include "font_terminus_tr.h"
-//#include "opensans_bold_tr.h"
+//#include "font_terminus_tr.h"
+#include "opensans_bold.h"
 
 #define SDA_PIN GPIO_NUM_15
 #define SCL_PIN GPIO_NUM_2
@@ -207,9 +207,9 @@ void task_ssd1306_display_text(void *arg_text) {
 			ESP_LOGI(tag, "before sending text");
 			ESP_LOGI(tag, "Index text: %d : %X : %c", text[i], text[i], text[i]);
 
-			ESP_LOG_BUFFER_HEX(tag, terminus16x8_tr[(uint8_t)text[i]], 16);
-			ESP_LOG_BUFFER_CHAR(tag, terminus16x8_tr[(uint8_t)text[i]], 16);
-			i2c_master_write(cmd, terminus16x8_tr[(uint8_t)text[i]], 16, true);
+			ESP_LOG_BUFFER_HEX(tag, opensans_bold56[(uint8_t)text[i]], 56);
+			ESP_LOG_BUFFER_CHAR(tag, opensans_bold56[(uint8_t)text[i]], 56);
+			i2c_master_write(cmd, opensans_bold56[(uint8_t)text[i]], 16, true);
 		        //i2c_master_write(cmd, font8x8_basic_tr[(uint8_t)text[i]], 8, true);
 
 			i2c_master_stop(cmd);
